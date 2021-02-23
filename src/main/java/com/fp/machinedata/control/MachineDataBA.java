@@ -79,12 +79,15 @@ public class MachineDataBA {
     }
 
     public ResponseEntity saveLineSpeed(LineInfoDO lineInfoDO) {
+
         if (!this.localPersistenseData.containsKey(lineInfoDO.getLineId())) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
+
         final long requestTimeStamp = LocalDateTime.now().atZone(ZoneOffset.UTC).toInstant().toEpochMilli();
 
         if (requestTimeStamp >= 0 && lineInfoDO.getTimeStamp() < requestTimeStamp) {
+
             if (verifyIfDataOccurredOnTheSpecificRangeOfTime(lineInfoDO.getTimeStamp(), requestTimeStamp, SIXTY_MINUTES_MILLISECONDS)) {
 
                 localPersistenseData.computeIfPresent(lineInfoDO.getLineId(), (key, val) -> updateDataOnSpecificLine(val, lineInfoDO));
@@ -94,6 +97,7 @@ public class MachineDataBA {
                 logger.warn("Data did not arrive on the last 60 minutes data: " + lineInfoDO.toString());
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
             }
+
         } else {
             logger.warn("Data has timeStamp not consistent value < 0 OR future date " + lineInfoDO.toString());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
