@@ -25,18 +25,17 @@ public class MachineDataBA {
 
     Logger logger = LoggerFactory.getLogger(MachineDataBA.class);
 
-    private final ConcurrentHashMap<Integer, DataMinuteDO> localPersistenseData = new ConcurrentHashMap<>();
-
+    private final ConcurrentHashMap<Integer, DataMinuteDO> localPersistData = new ConcurrentHashMap<>();
 
     @PostConstruct
     private void initLineIds() {
-        LINES.parallelStream().forEach(line -> localPersistenseData.put(line, new DataMinuteDO()));
+        LINES.parallelStream().forEach(line -> localPersistData.put(line, new DataMinuteDO()));
     }
 
 
     public ResponseEntity<LineMetrics> getMetricsByLineId(int lineId) {
 
-        DataMinuteDO dataMinute = localPersistenseData.computeIfPresent(lineId, (key, val) -> val);
+        DataMinuteDO dataMinute = localPersistData.computeIfPresent(lineId, (key, val) -> val);
 
         if (dataMinute == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
@@ -54,8 +53,8 @@ public class MachineDataBA {
         public ResponseEntity<List<LineMetrics>> getAllAvailableMetrics() {
             List<LineMetrics> listMetrics = LINES.parallelStream()
                     .map( line -> {
-                        if (localPersistenseData.containsKey(line)) {
-                        return localPersistenseData.get(line).getMetrics(line);
+                        if (localPersistData.containsKey(line)) {
+                        return localPersistData.get(line).getMetrics(line);
                     }
                     logger.error("There is an error on getAllAvailableMetrics when yhe system try yo build metrics to the line: " + line);
                     return null;
@@ -80,7 +79,7 @@ public class MachineDataBA {
 
     public ResponseEntity saveLineSpeed(LineInfoDO lineInfoDO) {
 
-        if (!this.localPersistenseData.containsKey(lineInfoDO.getLineId())) {
+        if (!this.localPersistData.containsKey(lineInfoDO.getLineId())) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
 
@@ -90,7 +89,7 @@ public class MachineDataBA {
 
             if (verifyIfDataOccurredOnTheSpecificRangeOfTime(lineInfoDO.getTimeStamp(), requestTimeStamp, SIXTY_MINUTES_MILLISECONDS)) {
 
-                localPersistenseData.computeIfPresent(lineInfoDO.getLineId(), (key, val) -> updateDataOnSpecificLine(val, lineInfoDO));
+                localPersistData.computeIfPresent(lineInfoDO.getLineId(), (key, val) -> updateDataOnSpecificLine(val, lineInfoDO));
                 return ResponseEntity.status(HttpStatus.CREATED).body(null);
 
             } else {
