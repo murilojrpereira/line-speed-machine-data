@@ -8,8 +8,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-import static com.fp.machinedata.control.common.BusinessConstants.ONE_MINUTE_MILLISECONDS;
-import static com.fp.machinedata.control.common.BusinessConstants.ZERO;
+import static com.fp.machinedata.control.common.BusinessConstants.*;
 import static com.fp.machinedata.control.common.utils.DateUtils.verifyIfDataOccurredOnTheSpecificRangeOfTime;
 
 
@@ -55,7 +54,7 @@ public class DataMinuteDO {
     }
 
 
-    public LineMetrics getMetrics(final int lineId) {
+    public LineMetrics buildLineMetricsIfAvailable(final int lineId, final long requestTime) {
 
         double max = ZERO;
         double avg = ZERO;
@@ -63,22 +62,9 @@ public class DataMinuteDO {
 
         if (lineId == this.lineId) {
 
-             max = Collections.max(this.maxSpeed.stream()
-                     .filter(data -> data != null && data.getSpeed() >= ZERO)
-                     .map(DataMachineDO::getSpeed).collect(Collectors.toList()));
-
-             min = Collections.min(this.minSpeed.stream()
-                     .filter(data -> data != null && data.getSpeed() >= ZERO)
-                     .map(DataMachineDO::getSpeed).collect(Collectors.toList()));
-
-             AtomicReference<Double> totalSpeedInOneOur = new AtomicReference<>((double) ZERO);
-             AtomicLong total = new AtomicLong();
-             this.avg.stream().filter(Objects::nonNull).forEach(average -> {
-                 final double totalSpeedMinute = average.getSpeed() * average.getNumberOfDataReceived();
-                 totalSpeedInOneOur.set(totalSpeedInOneOur.get() + totalSpeedMinute);
-                 total.set(total.get() + average.getNumberOfDataReceived());
-             });
-             avg = totalSpeedInOneOur.get() / total.get();
+             max = buildMaxValue(requestTime);
+             min = buildMinValue(requestTime);
+             avg = buildAverageValue(requestTime);
         }
 
         if (avg == ZERO && max == ZERO && min == ZERO) {
@@ -88,7 +74,11 @@ public class DataMinuteDO {
         return new LineMetrics(this.lineId, ConvertDoubleValues.formatDoubleTo(avg), ConvertDoubleValues.formatDoubleTo(max), ConvertDoubleValues.formatDoubleTo(min));
     }
 
-    public void processNewDataFromMachine(final double speed, final long timeStamp, final int lineId, final int minuteFromTimeStamp) {
+
+    public void processNewDataFromMachineAndSave(final double speed,
+                                                 final long timeStamp,
+                                                 final int lineId,
+                                                 final int minuteFromTimeStamp) {
 
         this.processAverage(speed, timeStamp, minuteFromTimeStamp, lineId);
         this.processMax(speed, timeStamp, minuteFromTimeStamp);
@@ -96,7 +86,7 @@ public class DataMinuteDO {
 
     }
 
-    private void processAverage(final double speed, long timeStamp, int minute, final int lineId) {
+    private void processAverage(final double speed,final long timeStamp,final int minute, final int lineId) {
 
         Optional<DataMachineDO> optionalAverage = Optional.ofNullable(getAvg().get(minute));
 
@@ -108,13 +98,13 @@ public class DataMinuteDO {
                 final double newTotal = currentTotal + speed;
 
                 average.setLastDatePersisted(timeStamp);
-                average.setNumberOfDataReceived(average.getNumberOfDataReceived() + 1);
+                average.setNumberOfDataReceived(average.getNumberOfDataReceived() + ONE);
                 average.setSpeed(newTotal / average.getNumberOfDataReceived());
             } else {
                 this.lineId = lineId;
                 average.setSpeed(speed);
                 average.setLastDatePersisted(timeStamp);
-                average.setNumberOfDataReceived(1);
+                average.setNumberOfDataReceived(ONE);
             }
         }
     }
@@ -135,12 +125,12 @@ public class DataMinuteDO {
                     max.setLastDatePersisted(timeStamp);
                 }
 
-                max.setNumberOfDataReceived(max.getNumberOfDataReceived() + 1);
+                max.setNumberOfDataReceived(max.getNumberOfDataReceived() + ONE);
 
             } else {
                 max.setSpeed(speed);
                 max.setLastDatePersisted(timeStamp);
-                max.setNumberOfDataReceived(1);
+                max.setNumberOfDataReceived(ONE);
             }
         }
     }
@@ -166,9 +156,41 @@ public class DataMinuteDO {
             } else {
                 min.setSpeed(speed);
                 min.setLastDatePersisted(timeStamp);
-                min.setNumberOfDataReceived(1);
+                min.setNumberOfDataReceived(ONE);
             }
         }
+    }
+
+    private double buildAverageValue(final long requestTime) {
+
+        AtomicReference<Double> totalSpeedInOneOur = new AtomicReference<>((double) ZERO);
+
+        AtomicLong total = new AtomicLong();
+
+            this.avg.stream()
+                    .filter(data -> data != null && verifyIfDataOccurredOnTheSpecificRangeOfTime(requestTime, data.getLastDatePersisted(), SIXTY_MINUTES_MILLISECONDS))
+                    .forEach(average -> {
+                final double totalSpeedMinute = average.getSpeed() * average.getNumberOfDataReceived();
+                totalSpeedInOneOur.set(totalSpeedInOneOur.get() + totalSpeedMinute);
+                total.set(total.get() + average.getNumberOfDataReceived());
+            });
+            return totalSpeedInOneOur.get() / total.get();
+    }
+
+    private double buildMaxValue(final long requestTime) {
+
+       return Collections.max(this.maxSpeed.stream()
+                .filter(data -> data != null && data.getSpeed() >= ZERO)
+               .filter(data -> verifyIfDataOccurredOnTheSpecificRangeOfTime(requestTime, data.getLastDatePersisted(), SIXTY_MINUTES_MILLISECONDS))
+                .map(DataMachineDO::getSpeed).collect(Collectors.toList()));
+    }
+
+    private double buildMinValue(final long requestTime) {
+
+        return Collections.min(this.minSpeed.stream()
+                .filter(data -> data != null && data.getSpeed() >= ZERO)
+                .filter(data -> verifyIfDataOccurredOnTheSpecificRangeOfTime(requestTime, data.getLastDatePersisted(), SIXTY_MINUTES_MILLISECONDS))
+                .map(DataMachineDO::getSpeed).collect(Collectors.toList()));
     }
 }
 

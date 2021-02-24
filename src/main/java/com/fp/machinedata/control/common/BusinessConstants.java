@@ -11,6 +11,8 @@ public class BusinessConstants {
 
     public static final long ZERO = 0;
 
+    public static final long ONE = 1;
+
     public static final long MINUS_ONE = -1;
 
     public static final List<Integer> LINES = Arrays.asList(11, 12);

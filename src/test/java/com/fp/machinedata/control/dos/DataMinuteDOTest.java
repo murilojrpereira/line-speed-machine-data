@@ -36,7 +36,7 @@ class DataMinuteDOTest {
                 .ofInstant(Instant.ofEpochMilli(dateA), ZoneOffset.UTC).getMinute();
 
         // When
-        dataMinuteDO.processNewDataFromMachine(speedValueA, dateA, 11, minuteFromTimeStamp);
+        dataMinuteDO.processNewDataFromMachineAndSave(speedValueA, dateA, 11, minuteFromTimeStamp);
 
         // Then
         assertEquals(dataMinuteDO.getAvg().get(minuteFromTimeStamp).getSpeed(), speedValueA);
@@ -57,7 +57,7 @@ class DataMinuteDOTest {
         final double average = (speedValueA + minSpeedValue) / 2;
 
         // When
-        dataMinuteDO.processNewDataFromMachine(minSpeedValue, dateB, 11, minuteFromTimeStamp);
+        dataMinuteDO.processNewDataFromMachineAndSave(minSpeedValue, dateB, 11, minuteFromTimeStamp);
 
         // Then
         assertEquals(dataMinuteDO.getAvg().get(minuteFromTimeStamp).getSpeed(), average);
@@ -78,7 +78,7 @@ class DataMinuteDOTest {
         final double average = (speedValueA + minSpeedValue + maxSpeedValue) / 3;
 
         // When
-        dataMinuteDO.processNewDataFromMachine(maxSpeedValue, dateA, 11, minuteFromTimeStamp);
+        dataMinuteDO.processNewDataFromMachineAndSave(maxSpeedValue, dateA, 11, minuteFromTimeStamp);
 
         // Then
         assertEquals(dataMinuteDO.getAvg().get(minuteFromTimeStamp).getSpeed(), average);
@@ -97,7 +97,7 @@ class DataMinuteDOTest {
                 .ofInstant(Instant.ofEpochMilli(dateA), ZoneOffset.UTC).getMinute();
         final double average = (speedValueA + minSpeedValue + maxSpeedValue + speedValueB) / 4;
 
-        dataMinuteDO.processNewDataFromMachine(speedValueB, dateB, 11, minuteFromTimeStamp);
+        dataMinuteDO.processNewDataFromMachineAndSave(speedValueB, dateB, 11, minuteFromTimeStamp);
 
         assertEquals(dataMinuteDO.getAvg().get(minuteFromTimeStamp).getSpeed(), average);
         assertEquals(dataMinuteDO.getMaxSpeed().get(minuteFromTimeStamp).getSpeed(), maxSpeedValue);

@@ -1,6 +1,5 @@
 package com.fp.machinedata.control;
 
-import com.fp.machinedata.MachineDataApplication;
 import com.fp.machinedata.control.dos.request.LineInfoDO;
 import com.fp.machinedata.control.dos.response.LineMetrics;
 import org.junit.jupiter.api.*;
@@ -10,13 +9,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import javax.sound.sampled.Line;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
