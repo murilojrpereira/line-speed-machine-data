@@ -35,26 +35,31 @@ public class MachineDataBA {
 
     public ResponseEntity<LineMetrics> getMetricsByLineId(int lineId) {
 
+        final long requestTimeStamp = LocalDateTime.now().atZone(ZoneOffset.UTC).toInstant().toEpochMilli();
+
         DataMinuteDO dataMinute = localPersistData.computeIfPresent(lineId, (key, val) -> val);
 
         if (dataMinute == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
 
-        LineMetrics lineMetrics = dataMinute.getMetrics(lineId);
+        LineMetrics lineMetrics = dataMinute.buildLineMetricsIfAvailable(lineId, requestTimeStamp);
 
         if (lineMetrics == null) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
         }
-        return ResponseEntity.status(HttpStatus.OK).body(dataMinute.getMetrics(lineId));
+        return ResponseEntity.status(HttpStatus.OK).body(dataMinute.buildLineMetricsIfAvailable(lineId, requestTimeStamp));
     }
 
 
         public ResponseEntity<List<LineMetrics>> getAllAvailableMetrics() {
+
+            final long requestTimeStamp = LocalDateTime.now().atZone(ZoneOffset.UTC).toInstant().toEpochMilli();
+
             List<LineMetrics> listMetrics = LINES.parallelStream()
                     .map( line -> {
                         if (localPersistData.containsKey(line)) {
-                        return localPersistData.get(line).getMetrics(line);
+                        return localPersistData.get(line).buildLineMetricsIfAvailable(line, requestTimeStamp);
                     }
                     logger.error("There is an error on getAllAvailableMetrics when yhe system try yo build metrics to the line: " + line);
                     return null;
@@ -72,7 +77,7 @@ public class MachineDataBA {
         int minuteFromTimeStamp = LocalDateTime
                 .ofInstant(Instant.ofEpochMilli(lineInfoDO.getTimeStamp()), ZoneOffset.UTC).getMinute();
 
-        dataMinuteDO.processNewDataFromMachine(lineInfoDO.getSpeed(),
+        dataMinuteDO.processNewDataFromMachineAndSave(lineInfoDO.getSpeed(),
                 lineInfoDO.getTimeStamp(), lineInfoDO.getLineId(), minuteFromTimeStamp);
         return dataMinuteDO;
     }

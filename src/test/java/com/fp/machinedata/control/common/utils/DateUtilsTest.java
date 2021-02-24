@@ -37,14 +37,12 @@ class DateUtilsTest {
     @Test
     void verifyIfDataOccurredOnTheSpecificRangeOfTimeWillReturnFalseBecauseTheDatesAreNotPartOfTheSameMinuteTestWithNegativeValue() {
         //Given
-        final long firstDate = -60001;
-        final long secondDate = 1;
+        final long firstDate = -1;
+        final long secondDate = 60000;
         // When
         final boolean isOnTheSameRange = DateUtils.verifyIfDataOccurredOnTheSpecificRangeOfTime(firstDate, secondDate, ONE_MINUTE_MILLISECONDS);
         //Then
         assertFalse(isOnTheSameRange);
     }
-
-
 
 }
