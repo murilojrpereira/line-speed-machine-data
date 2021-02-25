@@ -1,7 +1,7 @@
 package com.fp.machinedata.control.dos;
 
 
-public class DataMachineDO {
+public class MinuteInfoDO {
 
     private double speed;
 
@@ -9,13 +9,13 @@ public class DataMachineDO {
 
     private long lastDatePersisted;
 
-    public DataMachineDO() {
+    public MinuteInfoDO() {
         this.speed = -1;
         this.numberOfDataReceived = 0;
         lastDatePersisted = -1;
     }
 
-    public DataMachineDO(double speed, long numberOfDataReceived, long lastDatePersisted) {
+    public MinuteInfoDO(double speed, long numberOfDataReceived, long lastDatePersisted) {
         this.speed = speed;
         this.numberOfDataReceived = numberOfDataReceived;
         this.lastDatePersisted = lastDatePersisted;
