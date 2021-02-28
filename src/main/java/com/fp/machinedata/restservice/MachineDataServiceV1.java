@@ -74,6 +74,8 @@ public class MachineDataServiceV1 {
                     content = { @Content(mediaType = "application/json",
                             schema = @Schema(implementation = LineMetrics.class)) }),
             @ApiResponse(responseCode = "204", description = "The system did not receive any data yet.",
+                    content = @Content),
+            @ApiResponse(responseCode = "404", description = "Theres no such lineId in our system",
                     content = @Content)})
     @GetMapping("/metrics")
     private ResponseEntity<List<LineMetrics>> getMetrics() {

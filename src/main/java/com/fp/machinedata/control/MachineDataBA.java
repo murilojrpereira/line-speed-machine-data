@@ -1,5 +1,5 @@
 package com.fp.machinedata.control;
-import com.fp.machinedata.control.dos.DataMinuteDO;
+import com.fp.machinedata.control.dos.DataLineProductionInfoDO;
 import com.fp.machinedata.control.dos.request.LineInfoDO;
 import com.fp.machinedata.control.dos.response.LineMetrics;
 import org.slf4j.Logger;
@@ -25,11 +25,11 @@ public class MachineDataBA {
 
     Logger logger = LoggerFactory.getLogger(MachineDataBA.class);
 
-    private final ConcurrentHashMap<Integer, DataMinuteDO> localPersistData = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Integer, DataLineProductionInfoDO> localPersistData = new ConcurrentHashMap<>();
 
     @PostConstruct
     private void initLineIds() {
-        LINES.parallelStream().forEach(line -> localPersistData.put(line, new DataMinuteDO()));
+        LINES.parallelStream().forEach(line -> localPersistData.put(line, new DataLineProductionInfoDO()));
     }
 
 
@@ -37,7 +37,7 @@ public class MachineDataBA {
 
         final long requestTimeStamp = LocalDateTime.now().atZone(ZoneOffset.UTC).toInstant().toEpochMilli();
 
-        DataMinuteDO dataMinute = localPersistData.computeIfPresent(lineId, (key, val) -> val);
+        DataLineProductionInfoDO dataMinute = localPersistData.computeIfPresent(lineId, (key, val) -> val);
 
         if (dataMinute == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
@@ -72,14 +72,14 @@ public class MachineDataBA {
             return ResponseEntity.status(HttpStatus.OK).body(listMetrics);
         }
 
-    private DataMinuteDO updateDataOnSpecificLine(DataMinuteDO dataMinuteDO, LineInfoDO lineInfoDO) {
+    private DataLineProductionInfoDO updateDataOnSpecificLine(DataLineProductionInfoDO dataLineProductionInfoDO, LineInfoDO lineInfoDO) {
 
         int minuteFromTimeStamp = LocalDateTime
                 .ofInstant(Instant.ofEpochMilli(lineInfoDO.getTimeStamp()), ZoneOffset.UTC).getMinute();
 
-        dataMinuteDO.processNewDataFromMachineAndSave(lineInfoDO.getSpeed(),
+        dataLineProductionInfoDO.processNewDataFromMachineAndSave(lineInfoDO.getSpeed(),
                 lineInfoDO.getTimeStamp(), lineInfoDO.getLineId(), minuteFromTimeStamp);
-        return dataMinuteDO;
+        return dataLineProductionInfoDO;
     }
 
     public ResponseEntity saveLineSpeed(LineInfoDO lineInfoDO) {

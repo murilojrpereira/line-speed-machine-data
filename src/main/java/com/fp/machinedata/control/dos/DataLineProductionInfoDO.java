@@ -12,24 +12,24 @@ import static com.fp.machinedata.control.common.BusinessConstants.*;
 import static com.fp.machinedata.control.common.utils.DateUtils.verifyIfDataOccurredOnTheSpecificRangeOfTime;
 
 
-public class DataMinuteDO {
+public class DataLineProductionInfoDO {
 
     private int lineId;
 
-    private final List<DataMachineDO> maxSpeed = new ArrayList();
+    private final List<MinuteInfoDO> maxSpeed = new ArrayList();
 
-    private final List<DataMachineDO> minSpeed = new ArrayList();
+    private final List<MinuteInfoDO> minSpeed = new ArrayList();
 
-    private final List<DataMachineDO> avg = new ArrayList();
+    private final List<MinuteInfoDO> avg = new ArrayList();
 
 
 
-    public DataMinuteDO() {
+    public DataLineProductionInfoDO() {
         int SIXTY_MINUTES = 60;
         for (int i = 0; i < SIXTY_MINUTES; i++) {
-            maxSpeed.add(i, new DataMachineDO());
-            minSpeed.add(i, new DataMachineDO());
-            avg.add(i, new DataMachineDO());
+            maxSpeed.add(i, new MinuteInfoDO());
+            minSpeed.add(i, new MinuteInfoDO());
+            avg.add(i, new MinuteInfoDO());
         }
     }
 
@@ -41,15 +41,15 @@ public class DataMinuteDO {
         this.lineId = lineId;
     }
 
-    public List<DataMachineDO> getMaxSpeed() {
+    public List<MinuteInfoDO> getMaxSpeed() {
         return maxSpeed;
     }
 
-    public List<DataMachineDO> getMinSpeed() {
+    public List<MinuteInfoDO> getMinSpeed() {
         return minSpeed;
     }
 
-    public List<DataMachineDO> getAvg() {
+    public List<MinuteInfoDO> getAvg() {
         return avg;
     }
 
@@ -88,10 +88,10 @@ public class DataMinuteDO {
 
     private void processAverage(final double speed,final long timeStamp,final int minute, final int lineId) {
 
-        Optional<DataMachineDO> optionalAverage = Optional.ofNullable(getAvg().get(minute));
+        Optional<MinuteInfoDO> optionalAverage = Optional.ofNullable(getAvg().get(minute));
 
         if (optionalAverage.isPresent()) {
-            DataMachineDO average = optionalAverage.get();
+            MinuteInfoDO average = optionalAverage.get();
             if (verifyIfDataOccurredOnTheSpecificRangeOfTime(timeStamp, average.getLastDatePersisted(), ONE_MINUTE_MILLISECONDS)) {
 
                 final double currentTotal = average.getNumberOfDataReceived() * average.getSpeed();
@@ -112,10 +112,10 @@ public class DataMinuteDO {
 
     public void processMax(final double speed, long timeStamp, int minute) {
 
-        Optional<DataMachineDO> optionalMax = Optional.ofNullable(getMaxSpeed().get(minute));
+        Optional<MinuteInfoDO> optionalMax = Optional.ofNullable(getMaxSpeed().get(minute));
 
         if (optionalMax.isPresent()) {
-            DataMachineDO max = getMaxSpeed().get(minute);
+            MinuteInfoDO max = getMaxSpeed().get(minute);
             if (verifyIfDataOccurredOnTheSpecificRangeOfTime(timeStamp, max.getLastDatePersisted(), ONE_MINUTE_MILLISECONDS)) {
 
                 final double currentMax = max.getSpeed();
@@ -138,10 +138,10 @@ public class DataMinuteDO {
 
     public void processMin(final double speed, long timeStamp, int minute) {
 
-        Optional<DataMachineDO> optionalMin = Optional.ofNullable(getMinSpeed().get(minute));
+        Optional<MinuteInfoDO> optionalMin = Optional.ofNullable(getMinSpeed().get(minute));
 
         if (optionalMin.isPresent()) {
-            DataMachineDO min = optionalMin.get();
+            MinuteInfoDO min = optionalMin.get();
             if (verifyIfDataOccurredOnTheSpecificRangeOfTime(timeStamp, min.getLastDatePersisted(), ONE_MINUTE_MILLISECONDS)) {
 
                 final double currentMin = min.getSpeed();
@@ -182,7 +182,7 @@ public class DataMinuteDO {
        return Collections.max(this.maxSpeed.stream()
                 .filter(data -> data != null && data.getSpeed() >= ZERO)
                .filter(data -> verifyIfDataOccurredOnTheSpecificRangeOfTime(requestTime, data.getLastDatePersisted(), SIXTY_MINUTES_MILLISECONDS))
-                .map(DataMachineDO::getSpeed).collect(Collectors.toList()));
+                .map(MinuteInfoDO::getSpeed).collect(Collectors.toList()));
     }
 
     private double buildMinValue(final long requestTime) {
@@ -190,7 +190,7 @@ public class DataMinuteDO {
         return Collections.min(this.minSpeed.stream()
                 .filter(data -> data != null && data.getSpeed() >= ZERO)
                 .filter(data -> verifyIfDataOccurredOnTheSpecificRangeOfTime(requestTime, data.getLastDatePersisted(), SIXTY_MINUTES_MILLISECONDS))
-                .map(DataMachineDO::getSpeed).collect(Collectors.toList()));
+                .map(MinuteInfoDO::getSpeed).collect(Collectors.toList()));
     }
 }
 
